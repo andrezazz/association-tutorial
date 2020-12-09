@@ -1,0 +1,186 @@
+---
+title: "SYS 6018: Tutorial on Association Analysis"
+author: "Hannah Frederick (hbf3k), Sean Grace (smg2mx), Annie Williams (maw3as), André Zazzera (alz9cb)"
+date: "Date: 12/10/2020"
+output:
+  html_document: default
+  pdf_document: default
+editor_options:
+  chunk_output_type: console
+always_allow_html: yes
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
+```
+
+```{r packages, include=FALSE}
+library(kableExtra)
+library(tidyverse)
+library(arules)
+library(arulesViz)
+```
+
+## Introduction (Sean)
+
+## Applications (Andre)
+
+## Apriori Algorithm (Hannah)
+
+### Description
+
+In association analysis, one might want to find all itemsets in the dataset with support that meets some support threshold $s$. But if there are $x$ items in the dataset, then there are $2^x$ possible itemsets, which could cause computing time and space issues with too large of a search space. The Apriori algorithm seeks to decrease the time to find all such itemsets by restricting the search space of the dataset. To do this, it uses the rule that if an itemset is frequent, then all of its subsets must also be frequent; which also means that if an itemset is not frequent, then none of its supersets will be frequent. This makes sense since one rule of probability is that $P(A, B) \leq P(A)$; which in terms of our goal means that $S(\{a, b\}) \leq S(\{a\})$, so if $S(\{a\}) < s$, then $S(\{a, b\}) \leq s$. The Apriori algorithm uses this rule to search over the dataset and find all itemsets with at least a support of $s$ as follows.
+
+The first pass over the data computes the support of all itemsets of size one, and if the support of an itemset is less than $s$, then the item in that itemset is discarded from the data. The next pass computes the support of all itemsets of size two with items that withstood the first pass. Now, if the support of an itemset is less than $s$, then both of the items in that itemset are discarded from the data. For each pass, this method saves all itemsets of that size that meet the support threshold, and throws out the itemsets that did not. This process continues until there are no more itemsets with a support of at least $s$, and then returns all itemsets that were saved in each pass. Since this method restricts the search space for each pass, it decreases the search time as well; which means that this process will run in reasonable time even with enormous datasets.
+
+```{r, echo=FALSE, out.width="60%", fig.align='center'}
+knitr::include_graphics("apriori.png")
+```
+
+The graph above shows a visual representation of the support-based pruning in the Apriori algorithm. This process is akin to alpha-beta pruning, which is a search method that decreases the number of nodes evaluated by the minimax algorithm in its search tree. In this same way, the Apriori algorithm reduces the number of itemsets evaluated by this algorithm in its search space. In this example, the algorithm finds that the itemset $\{a, b\}$ does not meet the support threshold $s$, or $S(\{a, b\}) \leq s$. This means that all supersets of $\{a, b\}$, or itemsets of greater size that contain $a$ and $b$, will also not meet the support threshold $s$ since the $S(\{x, y\}) \leq S(\{x\})$ for any items $x, y$. The Apriori algorithm then discards all supersets of $\{a, b\}$ from the search space, such as $\{a, b, c\}, \{a, b, c, d\},$ and $\{a, b, c, d, e\}$. This pruning process saves significant computing time and space for even large datasets as long as the data is sparse enough and the threshold is high enough. 
+
+Each itemset $K$ that meets some support threshold can be cast into a set of association rules that show relationships between two itemsets in the form of $A \Rightarrow B$. The first itemset $A$ is called the "antecedent", and the second itemset $B$ is called the "consequent"; and no one item can be shared in both $A$ and $B$. The "support" of the rule $S(A \Rightarrow B)$ is the fraction of observations in the union of the antecedent and the consequent, which is just the support of the itemset $K$ from which $A$ and $B$ were split. Support approximates $P(A, B)$, or the probability of observing in the population itemsets $A$ and $B$ simultaneously in a basket. The "confidence" of the rule $C(A \Rightarrow B)$ is the support of the union of these two itemsets over the support of the antecedent, or $C(A \Rightarrow B) = \frac{S(A \Rightarrow B)}{S(A)}$. Confidence approximates $P(B \vert A)$, or the probability of observating in the population itemset $A$ in a basket with prior information that itemset $B$ is in that basket.
+
+In this way, the Apriori algorithm can find all rules that meet some confidence threshold $c$ containing all itemsets that meet some support threshold $s$. Thus, the output of this method is a collection of association rules that meet the constraints that $S(A \Rightarrow B) > s$ and $C(A \Rightarrow B) > c$. In terms of market basket research, this means that it finds all relationships between items in $A$ and $B$ in which the probability of observing all items in the union of $A$ and $B$ in a basket is greater than $s$, and the probability of observing itemset $A$ in a basket with prior information of itemset $B$ in that basket is greater than $c$. It should be noted that these relationships represent association and not causation between antecendents and consequents. Also focusing on the consequent can cast this problem into the form of a supervised learning problem.
+
+### Implementation
+
+You can run this algorithm in R with the "apriori" function in the "arules" package, and you can find the documentation for this function [here](https://www.rdocumentation.org/packages/arules/versions/1.6-6/topics/apriori). The arguments for this function are as follows:
+
+* "data" is an object of the "transactions" class that holds the items and transactions or a data structure that can be coerced to the "transactions" class (you can find more information on this class [here](https://www.rdocumentation.org/packages/arules/versions/1.6-6/topics/transactions-class))
+* "parameter" is an object of the "APparameter" class or a list that sets the minimum support ("support"), the minimum confidence ("confidence"), the minimum and maximum itemset sizes in total ("minlen" and maxlen"), the type of association mined ("target"), and other variables that you can find [here](https://www.rdocumentation.org/packages/arules/versions/1.6-6/topics/ASparameter-classes)
+* "appearance" is an object of the "APappearance" class or a list that sets the restrictions on the associations mined, such as what items are in the antecendent ("lhs"), what items are in the consequent ("rhs"), what items can be in the itemset ("item"), what items cannot be in the itemset ("none"), and other variables that you can find [here](https://www.rdocumentation.org/packages/arules/versions/1.6-6/topics/APappearance-class)
+* "control" is an object of the "APcontrol" class or a list that sets the algorithmic parameters of the mining algorithm, such as how to sort items ("sort"), if it should report progress ("verbose"), how to filter unused items ("filter"), and other variables that you can find [here](https://www.rdocumentation.org/packages/arules/versions/1.6-6/topics/AScontrol-classes)
+
+The function returns an object of the "rules" class (you can find more information on that [here](https://www.rdocumentation.org/packages/arules/versions/1.6-6/topics/rules-class)) or the "itemsets" class (you can find more information on that [here](https://www.rdocumentation.org/packages/arules/versions/1.6-6/topics/itemsets-class)) depending on what you set for the "target" parameter. The default values for the "support", "confidence", "minlen", and "maxlen" parameters are all 0.1, 0.8, 1, and 10 respectively. It should also be noted that this function only returns rules with one item in the consequent; so if "minlen" is set to 1, then no items are in the antecendent, so ${} \Rightarrow B$. This means that the confidence will be the probability of observing itemset $B$ in a basket regardless of what items are already in the basket, which is just equivalent to the support of $B$. You can forgo these sorts of rules by setting "minlen" to 2.
+
+For our groceries dataset, let's say we want to find all frequent itemsets with a support of at least 0.1, with at least 1 item, and with at most 2 items. We can use the "apriori" function and first pass it our dataset cast to a "transactions" class. We can then pass it a list of parameters that set the "support" to 0.01, the "minlen" to 1, the "maxlen" to 2, and the target to "frequent" since we are interested in finding frequent itemsets. We can then use our "apriori_output" function to print out the results of this method, including the items, their support, and their count. We can also sort the items depending on their support in descending order, and then we are left with the following table. From this table, we can see that whole milk has the greatest support (0.158) out of all itemsets in this dataset that have at least one and at most two items. This means that the whole milk occurs in 2,363 observations out of 14,963 transactions, so $\hat{P}(\text{{whole milk}})$, or the approximate probabilty in the population of whole milk being in a basket is 2363/14963 = 0.158.
+
+But we may also want to find all association rules with a support of at least 0.01, with a confidence of at least 0.10, and with at least 2 items in each rule. Then the "apriori" function will take all of the size-two itemsets from our last run that had a support of at least 0.01 and permutate all items in these itemsets to find all rules with a confidence of at least 0.10. We can again use the "apriori" function and first pass it our dataset cast to a "transactions" class. We can then pass it a list of parameters that set the "support" to 0.01, "confidence" to 0.10, the "minlen" to 2, and the target to "rules" since we are interested in finding association rules. We can then print out the results of this function with our "aprior_output" function, including the itemset of the antecedent ("lhs"), the itemset of the consequent ("rhs"), and the support, the confidence, and the count of each rule. We can also sort the rules depending on their confidence in descending order, and then we are left with the following table.
+
+From this table, we can see that the rule {yogurt} $\Rightarrow$ {whole milk} has the greatest confidence (0.130) out of all rules derived from this dataset that have at least two items. This means that $\hat{P}(\text{{whole milk}}\vert \text{{yogurt}})$, or the approximate probability in the population of whole milk being in a basket given that yogurt is in that basket is 0.130. Market owners could use this information to increase their sales of whole milk by placing whole milk next to yogurt since it seems that customers who buy yogurt are also likely to buy whole milk. But we could have also calculated the confidence of this rule by first finding all itemsets with a support of at least 0.01 that contain whole milk or yogurt or both. We know that $C(\text{{yogurt}} \Rightarrow \text{{whole milk}}) = \frac{S(\text{{yogurt}} \Rightarrow \text{{whole milk}})}{S(\text{yogurt})} = \frac{S(\text{{yogurt, whole milk}})}{S(\text{yogurt})}$, so the confidence of {yogurt} $\Rightarrow$ {whole milk} is 0.0112/0.0859 = 0.130. 
+
+
+## Other Interest Measures (Annie)
+
+## References
+
+```{r, message=FALSE}
+#https://www.kaggle.com/heeraldedhia/groceries-dataset
+#reading in the data
+groceries <- read_csv("groceries_dataset.csv")
+#cleaning the data
+groceries <- groceries %>% unite(transactions, Member_number, Date, sep = '_')
+groceries <- groceries %>% rename(items = itemDescription)
+#transactions: customer identification + _ + date of transaction
+#items: item in transaction
+#checking the data so no transactions have duplicate items
+groceries <- groceries %>% distinct(transactions, items, .keep_all = TRUE)
+```
+
+```{r}
+num_trans = n_distinct(groceries$transactions) #number of transactions: 14,963
+num_items = n_distinct(groceries$items) # number of items: 167
+```
+
+```{r}
+count(groceries, transactions) %>% 
+  ggplot(aes(n)) + geom_bar() + xlab("number of items per transaction")
+```
+
+```{r}
+trans_list = split(groceries$items, groceries$transactions) # get transaction list
+trans_class = as(trans_list, "transactions") #get transaction class
+summary(trans_class)
+```
+
+```{r}
+#function for printing output from apriori() function
+#source: Michael Porter
+apriori_output <- function(x){
+  if(class(x) == "itemsets"){
+    out = data.frame(items=arules::labels(x), x@quality, stringsAsFactors = FALSE)
+  }
+  else if(class(x) == "rules"){
+    out = data.frame(
+      lhs = arules::labels(lhs(x)),
+      rhs = arules::labels(rhs(x)),
+      x@quality, 
+      stringsAsFactors = FALSE)
+  }
+  else stop("only works with class of itemsets or rules")
+  if(require(tibble)) as_tibble(out) else out
+}
+```
+
+```{r}
+#finding counts and support for most frequent items
+freq_items = count(groceries, items, sort=TRUE) %>% mutate(support=n/num_trans)
+```
+
+```{r}
+#plotting top 20 most frequent items
+freq_items %>% slice(1:20) %>% 
+  ggplot(aes(fct_reorder(items, n), n)) + # order bars by n
+  geom_col() +         # barplot
+  coord_flip() +       # rotate plot 90 deg
+  theme(axis.title.y = element_blank()) # remove y axis title
+```
+
+```{r}
+#finding all frequent itemsets >= support threshold
+s = 0.01
+min = 1
+max = 2
+freq_items1 = apriori(trans_class, #run apriori function to find frequent items
+               parameter = list(support = s, minlen = min, maxlen = max, target="frequent"))
+apriori_output(freq_items1) %>% 
+  arrange(-support) #order by support (largest to smallest)
+```
+
+```{r}
+#adding lift as an interest measure
+apriori_output(freq_items1) %>% 
+  mutate(lift = interestMeasure(freq_items1, measure="lift", trans_class)) %>% 
+  arrange(lift) #order by lift (smallest to largest)
+```
+
+```{r}
+#finding all association rules >= support threshold and >= confidence threshold
+s = 0.01
+c = 0.10
+min = 2
+freq_rules1 <- apriori(trans_class, 
+               parameter = list(support = s, confidence = c, minlen = min, 
+               target="rules"))
+```
+
+```{r}
+apriori_output(freq_rules1) %>% arrange(-confidence) #order by confidence (largest to smallest)
+```
+
+```{r}
+apriori_output(freq_rules1) %>% arrange(-lift) #order by lift (largest to smallest)
+```
+
+```{r}
+itemset = c("whole milk", "yogurt")
+s = 0.01
+milk_and_yogurt = apriori(trans_class, 
+        parameter = list(support = s, target="frequent"), 
+        appearance = list(items = itemset))
+
+apriori_output(milk_and_yogurt)
+```
+
+```{r}
+#adding other interest measures
+apriori_output(freq_rules1) %>% 
+  mutate(AV = interestMeasure(freq_rules1, measure="addedValue", trans_class), 
+         PS = interestMeasure(freq_rules1, measure="leverage", trans_class)) %>% 
+  arrange(-AV)
+```
+
+```{r}
+#interactive plot - some nodes are items, others are rules
+#plot(freq_rules1, method="graph", measure="lift", engine="interactive")
+```
