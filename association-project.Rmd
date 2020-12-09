@@ -3,7 +3,10 @@ title: "SYS 6018: Tutorial on Association Analysis"
 author: "Hannah Frederick (hbf3k), Sean Grace (smg2mx), Annie Williams (maw3as), André Zazzera (alz9cb)"
 date: "Date: 12/10/2020"
 output:
-  html_document: default
+  prettydoc::html_pretty:
+    theme: architect
+    toc: true
+    toc_depth: 5
   pdf_document: default
 editor_options:
   chunk_output_type: console
@@ -157,6 +160,79 @@ While this can be helpful most of the time, not all rules with high support and 
 
 ## Other Interest Measures (Annie)
 
+The concept of interestingness is subjective in nature, and depends on the goals of a business or a research question. The interestingness of a rule oftentimes determines its value, depending on the given context. There are multiple different ways to measure the interestingness of a rule, many of which are included in the arules package. 
+
+The author of the arules package, Michael Hashler, separates support and confidence from the rest of the interest measures based on their importance. We chose only five alternative interest measures for the sake of this tutorial, but more can be found on [Hahsler’s page](https://michael.hahsler.net/research/association_rules/measures.html). 
+
+### Support and Confidence Review
+
+#### Support
+
+* **Support** is a proportion of transactions that contain item X. It can also be thought of as the probability of X getting into a future transaction. Low support could indicate that a rule happens by chance.
+
+  * $support(A)$ = (# of transactions containing $A$) / (# total transactions)
+  
+  * $support(A) = P(A \cap B)$
+  
+  * If an itemset has support greater than or equal to some user defined minimum support threshold, then we can call it a **frequent itemset** or a **large itemset**.  
+  
+  * Hashler points out a potential drawback of support called the **rare item problem**. It is possible for items that occur very infrequently to still produce useful results. However, when transaction data has an uneven distribution of support for individual items, these “rare items” are sometimes pruned out and overlooked
+  
+#### Confidence
+
+* **Confidence** is an estimate of conditional probability of Y being in a basket given the basket already contains X. 
+
+  * $conf(A \Rightarrow B) = P(B | A)$
+  
+  * It’s important to watch out for how support impacts confidence. Due to the way confidence is calculated, subsequent items with higher support will automatically produce higher confidence values even if there exists no association between the items.
+  
+  * A rule is a *high confidence rule* if it has confidence greater than or equal to a *confidence threshold* that the user selects. 
+
+### Alternative interest measures
+
+#### Lift
+
+* **Lift** is based on statistical independence, and is not directional. Hahsler says "lift measures how many times more often X and Y occur together than expected if they were statistically independent." In other words, lift defines an interesting rule as one that happens more or less than we would normally expect. 
+
+  * $lift(A \Rightarrow B) = lift(B \Rightarrow A) = \frac{conf(A \Rightarrow B)}{supp(B)} = \frac{conf(B \Rightarrow A)}{supp(A)} = \frac{P(A \cap B)}{P(A)P(B)}$
+  * Lift = 1 indicates independence between A and B
+  * Lift > 1 indicates positive association between A and B. 
+    * This means these two items are likely to occur together.
+  * Lift < 1 indicates negative association between A and B 
+    * This means these two items aren’t likely to occur together.
+    
+#### Cosine 
+    
+* **Cosine** is a measure of correlation between the items in X and Y defined as [(Tan et al. (2004))](https://michael.hahsler.net/research/bib/association_rules/#arules:Tan:2004)
+
+  * $cosine(A \Rightarrow B) = \frac{P(A) \cap P(B)}{\sqrt{P(A)P(B)}} = \sqrt{P(A|B)P(B|A)}$
+  * Value between [0, 1]
+  * 0.5 means no correlation 
+  * Null-invariant: does not change with the number of null transactions 
+  
+#### Jaccard coefficient
+  
+* **Jaccard's coefficient** is a measure for dependence using the Jaccard similarity between the two sets of transactions that contain the items in A and B, respectively (Hahsler). Defined as
+
+  * $jaccard(A \Rightarrow B) = \frac{P(A \cap B)}{P(A) + P(B) - P(A \cap B)}$
+  * Null-invariant: does not change with the number of null transactions 
+
+  
+#### Rule Power Factor
+
+* **Rule Power Factor** weights the confidence of a rule by its support. (Hasler) Defined as
+
+  * $rpf(A \Rightarrow B) = supp(A \cup B) * conf(A \cup B)$
+
+
+
+
+
+
+
+
+
+
 ## References
 
 ```{r, message=FALSE}
@@ -287,5 +363,5 @@ apriori_output(freq_rules1) %>%
 
 ```{r}
 #interactive plot - some nodes are items, others are rules
-#plot(freq_rules1, method="graph", measure="lift", engine="interactive")
+#plot(freq_rules1, method="graph", measure="lift")
 ```
