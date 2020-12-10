@@ -31,7 +31,7 @@ Association rule analysis has become an increasingly popular analytical method, 
 
 One of the most common applications of association analysis comes in business, where companies are trying to determine how groups of items are sold together. This is often referred to as "market analysis" or "market basket analysis". Besides market basket data, association analysis is also applicable to other application domains such as bioinformatics, medical diagnosis, Web mining, and scientific data analysis. In truth, association analysis can be useful whenever one is interested in uncovering interesting or significant relationships within large datasets. For the purposes of this tutorial, we will be walking through a market basket analysis on a sample dataset of grocery purchases.
 
-## Data
+## Dataset
 
 ```{r, message=FALSE}
 #https://www.kaggle.com/heeraldedhia/groceries-dataset
@@ -100,9 +100,9 @@ knitr::include_graphics("apriori.png")
 
 The graph above shows a visual representation of the support-based pruning in the Apriori algorithm. This process is akin to alpha-beta pruning, which is a search method that decreases the number of nodes evaluated by the minimax algorithm in its search tree. In this same way, the Apriori algorithm reduces the number of itemsets evaluated by this algorithm in its search space. In this example, the algorithm finds that the itemset $\{a, b\}$ does not meet the support threshold $s$, or $S(\{a, b\}) \leq s$. This means that all supersets of $\{a, b\}$, or itemsets of greater size that contain $a$ and $b$, will also not meet the support threshold $s$ since the $S(\{x, y\}) \leq S(\{x\})$ for any items $x, y$. The Apriori algorithm then discards all supersets of $\{a, b\}$ from the search space, such as $\{a, b, c\}, \{a, b, c, d\},$ and $\{a, b, c, d, e\}$. This pruning process saves significant computing time and space for even large datasets as long as the data is sparse enough and the threshold is high enough. 
 
-Each itemset $K$ that meets some support threshold can be cast into a set of association rules that show relationships between two itemsets in the form of $A \Rightarrow B$. The first itemset $A$ is called the "antecedent", and the second itemset $B$ is called the "consequent"; and no one item can be shared in both $A$ and $B$. The "support" of the rule $S(A \Rightarrow B)$ is the fraction of observations in the union of the antecedent and the consequent, which is just the support of the itemset $K$ from which $A$ and $B$ were split. Support approximates $P(A, B)$, or the probability of observing in the population itemsets $A$ and $B$ simultaneously in a basket. The "confidence" of the rule $C(A \Rightarrow B)$ is the support of the union of these two itemsets over the support of the antecedent, or $C(A \Rightarrow B) = \frac{S(A \Rightarrow B)}{S(A)}$. Confidence approximates $P(B \vert A)$, or the probability of observating in the population itemset $A$ in a basket with prior information that itemset $B$ is in that basket.
+Each itemset $K$ that meets some support threshold can be cast into a set of association rules that show relationships between two itemsets in the form of $A \rightarrow B$. The first itemset $A$ is called the "antecedent", and the second itemset $B$ is called the "consequent"; and no one item can be shared in both $A$ and $B$. The "support" of the rule $S(A \rightarrow B)$ is the fraction of observations in the union of the antecedent and the consequent, which is just the support of the itemset $K$ from which $A$ and $B$ were split. Support approximates $P(A, B)$, or the probability of observing in the population itemsets $A$ and $B$ simultaneously in a basket. The "confidence" of the rule $C(A \rightarrow B)$ is the support of the union of these two itemsets over the support of the antecedent, or $C(A \rightarrow B) = \frac{S(A \rightarrow B)}{S(A)}$. Confidence approximates $P(B \vert A)$, or the probability of observating in the population itemset $A$ in a basket with prior information that itemset $B$ is in that basket.
 
-In this way, the Apriori algorithm can find all rules that meet some confidence threshold $c$ containing all itemsets that meet some support threshold $s$. Thus, the output of this method is a collection of association rules that meet the constraints that $S(A \Rightarrow B) > s$ and $C(A \Rightarrow B) > c$. In terms of market basket research, this means that it finds all relationships between items in $A$ and $B$ in which the probability of observing all items in the union of $A$ and $B$ in a basket is greater than $s$, and the probability of observing itemset $A$ in a basket with prior information of itemset $B$ in that basket is greater than $c$. It should be noted that these relationships represent association and not causation between antecendents and consequents, which means that when $C(A \Rightarrow B)$ is high, we should not assume that if a customer buys itemset $A$, then this selection influences the customer to also buy itemset $B$. We should also be careful about assumptions if expected transactions in the future come from a different distribution than the observed transactions in the dataset. We should not extrapolate the conclusions of this association analysis outside the population of the dataset we use.
+In this way, the Apriori algorithm can find all rules that meet some confidence threshold $c$ containing all itemsets that meet some support threshold $s$. Thus, the output of this method is a collection of association rules that meet the constraints that $S(A \rightarrow B) > s$ and $C(A \rightarrow B) > c$. In terms of market basket research, this means that it finds all relationships between items in $A$ and $B$ in which the probability of observing all items in the union of $A$ and $B$ in a basket is greater than $s$, and the probability of observing itemset $A$ in a basket with prior information of itemset $B$ in that basket is greater than $c$. It should be noted that these relationships represent association and not causation between antecendents and consequents, which means that when $C(A \rightarrow B)$ is high, we should not assume that if a customer buys itemset $A$, then this selection influences the customer to also buy itemset $B$. We should also be careful about assumptions if expected transactions in the future come from a different distribution than the observed transactions in the dataset. We should not extrapolate the conclusions of this association analysis outside the population of the dataset we use.
 
 ### Implementation
 
@@ -113,7 +113,7 @@ You can run this algorithm in R with the "apriori" function in the "arules" pack
 * "appearance" is an object of the "APappearance" class or a list that sets the restrictions on the associations mined, such as what items are in the antecendent ("lhs"), what items are in the consequent ("rhs"), what items can be in the itemset ("item"), what items cannot be in the itemset ("none"), and other variables that you can find [here](https://www.rdocumentation.org/packages/arules/versions/1.6-6/topics/APappearance-class)
 * "control" is an object of the "APcontrol" class or a list that sets the algorithmic parameters of the mining algorithm, such as how to sort items ("sort"), if it should report progress ("verbose"), how to filter unused items ("filter"), and other variables that you can find [here](https://www.rdocumentation.org/packages/arules/versions/1.6-6/topics/AScontrol-classes)
 
-The function returns an object of the "rules" class (you can find more information on that [here](https://www.rdocumentation.org/packages/arules/versions/1.6-6/topics/rules-class)) or the "itemsets" class (you can find more information on that [here](https://www.rdocumentation.org/packages/arules/versions/1.6-6/topics/itemsets-class)) depending on what you set for the "target" parameter. The default values for the "support", "confidence", "minlen", and "maxlen" parameters are all 0.1, 0.8, 1, and 10 respectively. It should also be noted that this function only returns rules with one item in the consequent; so if "minlen" is set to 1, then no items are in the antecendent, so ${} \Rightarrow B$. This means that the confidence will be the probability of observing itemset $B$ in a basket regardless of what items are already in the basket, which is just equivalent to the support of $B$. You can forgo these sorts of rules by setting "minlen" to 2.
+The function returns an object of the "rules" class (you can find more information on that [here](https://www.rdocumentation.org/packages/arules/versions/1.6-6/topics/rules-class)) or the "itemsets" class (you can find more information on that [here](https://www.rdocumentation.org/packages/arules/versions/1.6-6/topics/itemsets-class)) depending on what you set for the "target" parameter. The default values for the "support", "confidence", "minlen", and "maxlen" parameters are all 0.1, 0.8, 1, and 10 respectively. It should also be noted that this function only returns rules with one item in the consequent; so if "minlen" is set to 1, then no items are in the antecendent, so ${} \rightarrow B$. This means that the confidence will be the probability of observing itemset $B$ in a basket regardless of what items are already in the basket, which is just equivalent to the support of $B$. You can forgo these sorts of rules by setting "minlen" to 2.
 
 ```{r}
 #function for printing output from apriori() function
@@ -136,26 +136,48 @@ apriori_output <- function(x){
 
 For our groceries dataset, let's say we want to find all frequent itemsets with a support of at least 0.1, with at least 1 item, and with at most 2 items. We can use the "apriori" function and first pass it our dataset cast to a "transactions" class. We can then pass it a list of parameters that set the "support" to 0.01, the "minlen" to 1, the "maxlen" to 2, and the target to "frequent" since we are interested in finding frequent itemsets. We can then use our "apriori_output" function to print out the results of this method, including the items, their support, and their count. We can also sort the items depending on their support in descending order, and then we are left with the following table. From this table, we can see that whole milk has the greatest support (0.158) out of all itemsets in this dataset that have at least one and at most two items. This means that the whole milk occurs in 2,363 observations out of 14,963 transactions, so $\hat{P}(\text{{whole milk}})$, or the approximate probabilty in the population of whole milk being in a basket is 2363/14963 = 0.158.
 
-```{r}
+```{r, message=FALSE, results='hide'}
 #finding all frequent itemsets >= support threshold
 s = 0.01
 min = 1
 max = 2
 freq_items1 = apriori(trans_class, #run apriori function to find frequent items
                parameter = list(support = s, minlen = min, maxlen = max, target="frequent"))
+```
+```{r}
 apriori_output(freq_items1) %>% 
   arrange(-support) #order by support (largest to smallest)
 ```
 
+But we may also want to find all association rules with a support of at least 0.01, with a confidence of at least 0.10, and with at least 2 items in each rule. Then the "apriori" function will take all of the size-two itemsets from our last run that had a support of at least 0.01 and permutate all items in these itemsets to find all rules with a confidence of at least 0.10. We can again use the "apriori" function and first pass it our dataset cast to a "transactions" class. We can then pass it a list of parameters that set the "support" to 0.01, "confidence" to 0.10, the "minlen" to 2, and the target to "rules" since we are interested in finding association rules. We can then print out the results of this function with our "aprior_output" function, including the itemset of the antecedent ("lhs"), the itemset of the consequent ("rhs"), and the support, the confidence, and the count of each rule. We can also sort the rules depending on their confidence in descending order, and then we are left with the following table.
+
+```{r, message=FALSE, results='hide'}
+#finding all association rules >= support threshold and >= confidence threshold
+s = 0.01
+c = 0.10
+min = 2
+freq_rules1 <- apriori(trans_class, 
+               parameter = list(support = s, confidence = c, minlen = min, 
+               target="rules"))
+```
 ```{r}
 apriori_output(freq_rules1) %>% arrange(-confidence) #order by confidence (largest to smallest)
 ```
 
-But we may also want to find all association rules with a support of at least 0.01, with a confidence of at least 0.10, and with at least 2 items in each rule. Then the "apriori" function will take all of the size-two itemsets from our last run that had a support of at least 0.01 and permutate all items in these itemsets to find all rules with a confidence of at least 0.10. We can again use the "apriori" function and first pass it our dataset cast to a "transactions" class. We can then pass it a list of parameters that set the "support" to 0.01, "confidence" to 0.10, the "minlen" to 2, and the target to "rules" since we are interested in finding association rules. We can then print out the results of this function with our "aprior_output" function, including the itemset of the antecedent ("lhs"), the itemset of the consequent ("rhs"), and the support, the confidence, and the count of each rule. We can also sort the rules depending on their confidence in descending order, and then we are left with the following table.
+From this table, we can see that the rule {yogurt} $\rightarrow$ {whole milk} has the greatest confidence (0.130) out of all rules derived from this dataset that have at least two items. This means that $\hat{P}(\text{{whole milk}}\vert \text{{yogurt}})$, or the approximate probability in the population of whole milk being in a basket given that yogurt is in that basket is 0.130. Market owners could use this information to increase their sales of whole milk by placing whole milk next to yogurt since it seems that customers who buy yogurt are also likely to buy whole milk. But we could have also calculated the confidence of this rule by first finding all itemsets with a support of at least 0.01 that contain whole milk or yogurt or both. We know that $C(\text{{yogurt}} \rightarrow \text{{whole milk}}) = \frac{S(\text{{yogurt}} \rightarrow \text{{whole milk}})}{S(\text{yogurt})} = \frac{S(\text{{yogurt, whole milk}})}{S(\text{yogurt})}$, so the confidence of {yogurt} $\rightarrow$ {whole milk} is 0.0112/0.0859 = 0.130. 
 
-From this table, we can see that the rule {yogurt} $\Rightarrow$ {whole milk} has the greatest confidence (0.130) out of all rules derived from this dataset that have at least two items. This means that $\hat{P}(\text{{whole milk}}\vert \text{{yogurt}})$, or the approximate probability in the population of whole milk being in a basket given that yogurt is in that basket is 0.130. Market owners could use this information to increase their sales of whole milk by placing whole milk next to yogurt since it seems that customers who buy yogurt are also likely to buy whole milk. But we could have also calculated the confidence of this rule by first finding all itemsets with a support of at least 0.01 that contain whole milk or yogurt or both. We know that $C(\text{{yogurt}} \Rightarrow \text{{whole milk}}) = \frac{S(\text{{yogurt}} \Rightarrow \text{{whole milk}})}{S(\text{yogurt})} = \frac{S(\text{{yogurt, whole milk}})}{S(\text{yogurt})}$, so the confidence of {yogurt} $\Rightarrow$ {whole milk} is 0.0112/0.0859 = 0.130. 
+```{r, message=FALSE, results='hide'}
+itemset = c("whole milk", "yogurt")
+s = 0.01
+milk_and_yogurt = apriori(trans_class, 
+        parameter = list(support = s, target="frequent"), 
+        appearance = list(items = itemset))
+```
+```{r}
+apriori_output(milk_and_yogurt)
+```
 
-While this can be helpful most of the time, not all rules with high support and confidence are useful. If the support of {whole milk} is very high and the support of {yogurt} is very high, then the confidence of {yogurt} $\Rightarrow$ {whole milk} will be high regardless of if there are real association between these itemsets. 
+While this can be helpful most of the time, not all rules with high support and confidence are useful. If the support of {whole milk} is very high and the support of {yogurt} is very high, then the confidence of {yogurt} $\rightarrow$ {whole milk} will be high regardless of if there are real association between these itemsets. 
 
 
 ## Other Interest Measures (Annie)
@@ -182,7 +204,7 @@ The author of the arules package, Michael Hashler, separates support and confide
 
 * **Confidence** is an estimate of conditional probability of Y being in a basket given the basket already contains X. 
 
-  * $conf(A \Rightarrow B) = P(B | A)$
+  * $conf(A \rightarrow B) = P(B | A)$
   
   * It’s important to watch out for how support impacts confidence. Due to the way confidence is calculated, subsequent items with higher support will automatically produce higher confidence values even if there exists no association between the items.
   
@@ -194,7 +216,7 @@ The author of the arules package, Michael Hashler, separates support and confide
 
 * **Lift** is based on statistical independence, and is not directional. Hahsler says "lift measures how many times more often X and Y occur together than expected if they were statistically independent." In other words, lift defines an interesting rule as one that happens more or less than we would normally expect. 
 
-  * $lift(A \Rightarrow B) = lift(B \Rightarrow A) = \frac{conf(A \Rightarrow B)}{supp(B)} = \frac{conf(B \Rightarrow A)}{supp(A)} = \frac{P(A \cap B)}{P(A)P(B)}$
+  * $lift(A \rightarrow B) = lift(B \rightarrow A) = \frac{conf(A \rightarrow B)}{supp(B)} = \frac{conf(B \rightarrow A)}{supp(A)} = \frac{P(A \cap B)}{P(A)P(B)}$
   * Lift = 1 indicates independence between A and B
   * Lift > 1 indicates positive association between A and B. 
     * This means these two items are likely to occur together.
@@ -205,7 +227,7 @@ The author of the arules package, Michael Hashler, separates support and confide
     
 * **Cosine** is a measure of correlation between the items in X and Y defined as [(Tan et al. (2004))](https://michael.hahsler.net/research/bib/association_rules/#arules:Tan:2004)
 
-  * $cosine(A \Rightarrow B) = \frac{P(A) \cap P(B)}{\sqrt{P(A)P(B)}} = \sqrt{P(A|B)P(B|A)}$
+  * $cosine(A \rightarrow B) = \frac{P(A) \cap P(B)}{\sqrt{P(A)P(B)}} = \sqrt{P(A|B)P(B|A)}$
   * Value between [0, 1]
   * 0.5 means no correlation 
   * Null-invariant: does not change with the number of null transactions 
@@ -214,7 +236,7 @@ The author of the arules package, Michael Hashler, separates support and confide
   
 * **Jaccard's coefficient** is a measure for dependence using the Jaccard similarity between the two sets of transactions that contain the items in A and B, respectively (Hahsler). Defined as
 
-  * $jaccard(A \Rightarrow B) = \frac{P(A \cap B)}{P(A) + P(B) - P(A \cap B)}$
+  * $jaccard(A \rightarrow B) = \frac{P(A \cap B)}{P(A) + P(B) - P(A \cap B)}$
   * Null-invariant: does not change with the number of null transactions 
 
   
@@ -222,16 +244,7 @@ The author of the arules package, Michael Hashler, separates support and confide
 
 * **Rule Power Factor** weights the confidence of a rule by its support. (Hasler) Defined as
 
-  * $rpf(A \Rightarrow B) = supp(A \cup B) * conf(A \cup B)$
-
-
-
-
-
-
-
-
-
+  * $rpf(A \rightarrow B) = supp(A \cup B) * conf(A \cup B)$
 
 ## References
 
@@ -333,6 +346,8 @@ min = 2
 freq_rules1 <- apriori(trans_class, 
                parameter = list(support = s, confidence = c, minlen = min, 
                target="rules"))
+
+apriori_output(freq_rules1) %>% arrange(-confidence) #order by confidence (largest to smallest)
 ```
 
 ```{r}
