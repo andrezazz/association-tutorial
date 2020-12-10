@@ -23,11 +23,28 @@ library(arules)
 library(arulesViz)
 ```
 
-## Introduction
+## Introduction (Sean)
 
-Association rule analysis has become an increasingly popular analytical method, because of how useful it can be for commercial databases. Association anlysis can be used any times you have items sets and a variety of items that may or may not be included in a given set. The goal for this analysis is to uncover relationships between these items. The most practical application for this type of analysis is for retailers who would like to find metrics related to the items that are frequently bought together. The value proposition for this type of analysis is massive, as it can help optimize things like reccomendation algorithms, special deals, inventory management and other aspects which are vital to retailers.
+Association rule analysis has become an increasingly popular analytical method, because of how useful it can be for commercial databases. Association anlysis can be used any times you have items sets and a variety of items that may or may not be included in a given set. The goal for this analysis is to uncover relationships between these items. The most practical application for this type of analysis is for retailers who would like to find metrics related to the items that are frequently bought together. The value proposition for this type of analysis is massive, as it can help optimize things like reccomendation algorithms, special deals, inventory management and other aspects which are vital to retailers.  
 
-## Applications
+In the context of this "market basket" analysis, the goal is gernally to seek joint values of items $I = {i_1, i_2 \dots i_d}$ which consistently arise in your database's transactions $T = {t_1, t_2, \dots, t_N}$. While it might be more simple and asthetically pleasing to think of each transaction as a set like: 
+
+$t_1 = {i_1, i_3, i_4}, t_2 = {i_1,i_2,i_5}$
+
+it may be more pratical to have your data represented in a binary representation:
+
+|    | $i_1$ | $i_2$ | $i_3$ | $i_4$ | $i_5$ |
+|----|----|----|----|----|----|
+| $t_1$ | 1  | 0  | 1  | 1  | 0  |
+| $t_2$ | 1  | 1  | 0  | 0  | 1  |
+
+where each cell has a 1 if the transaction has a given item and a 0 ortherwise. 
+
+Put simply, the goal of this analysis is to find conditions where the probability density of finding a given item in a set $Pr(x_i)$ is larger than it is outside of said conditions. 
+
+In this tutorial we will go over the specifics of how this is accomplished. We will start by introducing a dataset for which these methods can be implemented. Next, we will go more into detail regarding possible applications of this type of analysis. This includes the implementation and uses of the apriori algorithm, a vital algorthim for association rule analysis. Finally we will examine some of the most important interest measures for association rules, including support, confidence, leverage, and lift. 
+
+## Applications (Andre)
 
 One of the most common applications of association analysis comes in business, where companies are trying to determine how groups of items are sold together. This is often referred to as "market analysis" or "market basket analysis". Besides market basket data, association analysis is also applicable to other application domains such as bioinformatics, medical diagnosis, Web mining, and scientific data analysis. In truth, association analysis can be useful whenever one is interested in uncovering interesting or significant relationships within large datasets. For the purposes of this tutorial, we will be walking through a market basket analysis on a sample dataset of grocery purchases.
 
@@ -93,8 +110,10 @@ freq_items %>% slice(1:20) %>%
   theme(axis.title.y = element_blank()) # remove y axis title
 ```
 
+## Apriori Algorithm (Hannah)
+=======
 ## Apriori Algorithm
-
+>>>>>>> a31e77354247703374db586828080f1c8b5740c9
 ### Description
 
 In association analysis, one might want to find all itemsets in the dataset with support that meets some support threshold $s$. But if there are $x$ items in the dataset, then there are $2^x - 1$ possible non-empty itemsets, which could cause computing time and space issues with too large of a search space. The Apriori algorithm seeks to decrease the time to find all such itemsets by restricting the search space of the dataset. To do this, it uses the rule that if an itemset is frequent, then all of its subsets must also be frequent; which also means that if an itemset is not frequent, then none of its supersets will be frequent. This makes sense since one rule of probability is that $P(A, B) \leq P(A)$; which in terms of our goal means that $S(\{a, b\}) \leq S(\{a\})$, so if $S(\{a\}) < s$, then $S(\{a, b\}) \leq s$. The Apriori algorithm uses this rule to search over the dataset and find all itemsets with at least a support of $s$ as follows.
@@ -187,20 +206,11 @@ apriori_output(milk_and_yogurt)
 While this can be helpful most of the time, not all rules with high support and confidence are useful. If the support of {whole milk} is very high and the support of {yogurt} is very high, then the confidence of {yogurt} $\rightarrow$ {whole milk} will be high regardless of if there are real association between these itemsets. 
 
 
-## Other Interest Measures
+## Other Interest Measures (Annie)
 
-The concept of interestingness is subjective, and depends on the goals of a business or a research question. The interestingness of a rule oftentimes determines its value, depending on the given context. There are multiple different ways to measure the interestingness of a rule, many of which are included in the arules package. 
+The concept of interestingness is subjective in nature, and depends on the goals of a business or a research question. The interestingness of a rule oftentimes determines its value, depending on the given context. There are multiple different ways to measure the interestingness of a rule, many of which are included in the arules package. 
 
 The author of the arules package, Michael Hashler, separates support and confidence from the rest of the interest measures based on their importance. We chose only five alternative interest measures for the sake of this tutorial, but more can be found on [Hahsler’s page](https://michael.hahsler.net/research/association_rules/measures.html). 
-
-```{r}
-#adding other interest measures
-output = apriori_output(freq_rules1) %>% 
-  mutate(leverage = interestMeasure(freq_rules1, measure="leverage", trans_class), 
-         cosine = interestMeasure(freq_rules1, measure="cosine", trans_class), 
-         jaccard = interestMeasure(freq_rules1, measure="jaccard", trans_class),
-         rule_power = interestMeasure(freq_rules1, measure="rulePowerFactor", trans_class))
-```
 
 ### Support and Confidence Review
 
@@ -224,7 +234,7 @@ output = apriori_output(freq_rules1) %>%
   
   * It’s important to watch out for how support impacts confidence. Due to the way confidence is calculated, subsequent items with higher support will automatically produce higher confidence values even if there exists no association between the items.
   
-  * A rule is a **high confidence rule** if it has confidence greater than or equal to a **confidence threshold** that the user selects. 
+  * A rule is a *high confidence rule* if it has confidence greater than or equal to a *confidence threshold* that the user selects. 
 
 ### Alternative interest measures
 
@@ -238,56 +248,107 @@ output = apriori_output(freq_rules1) %>%
     * This means these two items are likely to occur together.
   * Lift < 1 indicates negative association between A and B 
     * This means these two items aren’t likely to occur together.
-
-The below cell shows the rules sorted by lift. In this dataset, the lift for every rule is less than one, meaning that for each rule the antecedent inhibits the consequent. 
-```{r}
-output %>% arrange(-lift)
-```
-    
-```{r}
-#some nodes are items, others are rules
-plot(freq_rules1, method="graph", measure="lift")
-```
     
 #### Cosine 
     
 * **Cosine** is a measure of correlation between the items in X and Y defined as [(Tan et al. (2004))](https://michael.hahsler.net/research/bib/association_rules/#arules:Tan:2004)
 
-  * $cosine(A \rightarrow B) = \frac{P(A \cap B)}{\sqrt{P(A)P(B)}} = \sqrt{P(A|B)P(B|A)}$
+  * $cosine(A \rightarrow B) = \frac{P(A) \cap P(B)}{\sqrt{P(A)P(B)}} = \sqrt{P(A|B)P(B|A)}$
   * Value between [0, 1]
   * 0.5 means no correlation 
   * Null-invariant: does not change with the number of null transactions 
   
-```{r}
-output %>% arrange(-cosine)
-```
-  
-#### Jaccard's coefficient
+#### Jaccard coefficient
   
 * **Jaccard's coefficient** is a measure for dependence using the Jaccard similarity between the two sets of transactions that contain the items in A and B, respectively (Hahsler). Defined as
 
-
   * $jaccard(A \rightarrow B) = \frac{P(A \cap B)}{P(A) + P(B) - P(A \cap B)}$
   * Null-invariant: does not change with the number of null transactions 
-  
-```{r}
-output %>% arrange(-jaccard)
-```
 
   
 #### Rule Power Factor
 
 * **Rule Power Factor** weights the confidence of a rule by its support. (Hasler) Defined as
 
-  * $rpf(A \Rightarrow B) = supp(A \cup B) * conf(A \cup B)$
-  
-```{r}
-output %>% arrange(-rule_power)
-```
-
-
+  * $rpf(A \rightarrow B) = supp(A \cup B) * conf(A \cup B)$
 
 ## References
 
-https://www.rdocumentation.org/packages/arules/versions/1.6-6/topics/interestMeasure
 
+```{r}
+#function for printing output from apriori() function
+#source: Michael Porter
+apriori_output <- function(x){
+  if(class(x) == "itemsets"){
+    out = data.frame(items=arules::labels(x), x@quality, stringsAsFactors = FALSE)
+  }
+  else if(class(x) == "rules"){
+    out = data.frame(
+      lhs = arules::labels(lhs(x)),
+      rhs = arules::labels(rhs(x)),
+      x@quality, 
+      stringsAsFactors = FALSE)
+  }
+  else stop("only works with class of itemsets or rules")
+  if(require(tibble)) as_tibble(out) else out
+}
+```
+
+```{r}
+#finding all frequent itemsets >= support threshold
+s = 0.01
+min = 1
+max = 2
+freq_items1 = apriori(trans_class, #run apriori function to find frequent items
+               parameter = list(support = s, minlen = min, maxlen = max, target="frequent"))
+apriori_output(freq_items1) %>% 
+  arrange(-support) #order by support (largest to smallest)
+```
+
+```{r}
+#adding lift as an interest measure
+apriori_output(freq_items1) %>% 
+  mutate(lift = interestMeasure(freq_items1, measure="lift", trans_class)) %>% 
+  arrange(lift) #order by lift (smallest to largest)
+```
+
+```{r}
+#finding all association rules >= support threshold and >= confidence threshold
+s = 0.01
+c = 0.10
+min = 2
+freq_rules1 <- apriori(trans_class, 
+               parameter = list(support = s, confidence = c, minlen = min, 
+               target="rules"))
+apriori_output(freq_rules1) %>% arrange(-confidence) #order by confidence (largest to smallest)
+```
+
+```{r}
+apriori_output(freq_rules1) %>% arrange(-confidence) #order by confidence (largest to smallest)
+```
+
+```{r}
+apriori_output(freq_rules1) %>% arrange(-lift) #order by lift (largest to smallest)
+```
+
+```{r}
+itemset = c("whole milk", "yogurt")
+s = 0.01
+milk_and_yogurt = apriori(trans_class, 
+        parameter = list(support = s, target="frequent"), 
+        appearance = list(items = itemset))
+apriori_output(milk_and_yogurt)
+```
+
+```{r}
+#adding other interest measures
+apriori_output(freq_rules1) %>% 
+  mutate(AV = interestMeasure(freq_rules1, measure="addedValue", trans_class), 
+         PS = interestMeasure(freq_rules1, measure="leverage", trans_class)) %>% 
+  arrange(-AV)
+```
+
+```{r}
+#interactive plot - some nodes are items, others are rules
+plot(freq_rules1, method="graph", measure="lift")
+```
