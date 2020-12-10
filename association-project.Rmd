@@ -65,7 +65,7 @@ From this table, we can see that the rule {yogurt} $\Rightarrow$ {whole milk} ha
 
 ## Other Interest Measures (Annie)
 
-The concept of interestingness is subjective in nature, and depends on the goals of a business or a research question. The interestingness of a rule oftentimes determines its value, depending on the given context. There are multiple different ways to measure the interestingness of a rule, many of which are included in the arules package. 
+The concept of interestingness is subjective, and depends on the goals of a business or a research question. The interestingness of a rule oftentimes determines its value, depending on the given context. There are multiple different ways to measure the interestingness of a rule, many of which are included in the arules package. 
 
 The author of the arules package, Michael Hashler, separates support and confidence from the rest of the interest measures based on their importance. We chose only five alternative interest measures for the sake of this tutorial, but more can be found on [Hahsler’s page](https://michael.hahsler.net/research/association_rules/measures.html). 
 
@@ -91,7 +91,7 @@ The author of the arules package, Michael Hashler, separates support and confide
   
   * It’s important to watch out for how support impacts confidence. Due to the way confidence is calculated, subsequent items with higher support will automatically produce higher confidence values even if there exists no association between the items.
   
-  * A rule is a *high confidence rule* if it has confidence greater than or equal to a *confidence threshold* that the user selects. 
+  * A rule is a **high confidence rule** if it has confidence greater than or equal to a **confidence threshold** that the user selects. 
 
 ### Alternative interest measures
 
@@ -115,7 +115,7 @@ The author of the arules package, Michael Hashler, separates support and confide
   * 0.5 means no correlation 
   * Null-invariant: does not change with the number of null transactions 
   
-#### Jaccard coefficient
+#### Jaccard's coefficient
   
 * **Jaccard's coefficient** is a measure for dependence using the Jaccard similarity between the two sets of transactions that contain the items in A and B, respectively (Hahsler). Defined as
 
@@ -131,14 +131,11 @@ The author of the arules package, Michael Hashler, separates support and confide
 
 
 
-
-
-
-
-
-
-
 ## References
+
+https://www.rdocumentation.org/packages/arules/versions/1.6-6/topics/interestMeasure
+
+
 
 ```{r, message=FALSE}
 #https://www.kaggle.com/heeraldedhia/groceries-dataset
@@ -220,6 +217,16 @@ apriori_output(freq_items1) %>%
   arrange(lift) #order by lift (smallest to largest)
 ```
 
+
+lift example
+```{r}
+#adding lift as an interest measure
+apriori_output(freq_items1) %>% 
+  mutate(lift = interestMeasure(freq_items1, measure="lift", trans_class)) %>% 
+  arrange(lift) #order by lift (smallest to largest)
+```
+
+confidence example 
 ```{r}
 #finding all association rules >= support threshold and >= confidence threshold
 s = 0.01
@@ -239,6 +246,14 @@ apriori_output(freq_rules1) %>% arrange(-lift) #order by lift (largest to smalle
 ```
 
 ```{r}
+#adding lift as an interest measure
+apriori_output(freq_items1) %>% 
+  mutate(lift = interestMeasure(freq_items1, measure="lift", trans_class)) %>% 
+  arrange(lift) #order by lift (smallest to largest)
+
+```
+
+```{r}
 itemset = c("whole milk", "yogurt")
 s = 0.01
 milk_and_yogurt = apriori(trans_class, 
@@ -248,11 +263,16 @@ milk_and_yogurt = apriori(trans_class,
 apriori_output(milk_and_yogurt)
 ```
 
+
+Scoot this code chunk to above the rest of the code chunks
 ```{r}
 #adding other interest measures
 apriori_output(freq_rules1) %>% 
   mutate(AV = interestMeasure(freq_rules1, measure="addedValue", trans_class), 
-         PS = interestMeasure(freq_rules1, measure="leverage", trans_class)) %>% 
+         PS = interestMeasure(freq_rules1, measure="leverage", trans_class), 
+         cosine = interestMeasure(freq_rules1, measure="cosine", trans_class), 
+         jaccard = interestMeasure(freq_rules1, measure="jaccard", trans_class),
+         rule_power = interestMeasure(freq_rules1, measure="rulePowerFactor", trans_class)) %>% 
   arrange(-AV)
 ```
 
