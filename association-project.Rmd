@@ -93,10 +93,7 @@ freq_items %>% slice(1:20) %>%
   theme(axis.title.y = element_blank()) # remove y axis title
 ```
 
-## Apriori Algorithm (Hannah)
-=======
 ## Apriori Algorithm
->>>>>>> a31e77354247703374db586828080f1c8b5740c9
 
 ### Description
 
@@ -196,6 +193,18 @@ The concept of interestingness is subjective, and depends on the goals of a busi
 
 The author of the arules package, Michael Hashler, separates support and confidence from the rest of the interest measures based on their importance. We chose only five alternative interest measures for the sake of this tutorial, but more can be found on [Hahsler’s page](https://michael.hahsler.net/research/association_rules/measures.html). 
 
+Scoot this code chunk to above the rest of the code chunks
+```{r}
+#adding other interest measures
+apriori_output(freq_rules1) %>% 
+  mutate(lift = interestMeasure(freq_rules1, measure="lift", trans_class),
+         PS = interestMeasure(freq_rules1, measure="leverage", trans_class), 
+         cosine = interestMeasure(freq_rules1, measure="cosine", trans_class), 
+         jaccard = interestMeasure(freq_rules1, measure="jaccard", trans_class),
+         rule_power = interestMeasure(freq_rules1, measure="rulePowerFactor", trans_class)) %>% 
+  arrange(-AV)
+```
+
 ### Support and Confidence Review
 
 #### Support
@@ -263,104 +272,6 @@ The author of the arules package, Michael Hashler, separates support and confide
 https://www.rdocumentation.org/packages/arules/versions/1.6-6/topics/interestMeasure
 
 
-
-```{r}
-#function for printing output from apriori() function
-#source: Michael Porter
-apriori_output <- function(x){
-  if(class(x) == "itemsets"){
-    out = data.frame(items=arules::labels(x), x@quality, stringsAsFactors = FALSE)
-  }
-  else if(class(x) == "rules"){
-    out = data.frame(
-      lhs = arules::labels(lhs(x)),
-      rhs = arules::labels(rhs(x)),
-      x@quality, 
-      stringsAsFactors = FALSE)
-  }
-  else stop("only works with class of itemsets or rules")
-  if(require(tibble)) as_tibble(out) else out
-}
-```
-
-```{r}
-#finding all frequent itemsets >= support threshold
-s = 0.01
-min = 1
-max = 2
-freq_items1 = apriori(trans_class, #run apriori function to find frequent items
-               parameter = list(support = s, minlen = min, maxlen = max, target="frequent"))
-apriori_output(freq_items1) %>% 
-  arrange(-support) #order by support (largest to smallest)
-```
-
-```{r}
-#adding lift as an interest measure
-apriori_output(freq_items1) %>% 
-  mutate(lift = interestMeasure(freq_items1, measure="lift", trans_class)) %>% 
-  arrange(lift) #order by lift (smallest to largest)
-```
-
-
-lift example
-```{r}
-#adding lift as an interest measure
-apriori_output(freq_items1) %>% 
-  mutate(lift = interestMeasure(freq_items1, measure="lift", trans_class)) %>% 
-  arrange(lift) #order by lift (smallest to largest)
-```
-
-confidence example 
-```{r}
-#finding all association rules >= support threshold and >= confidence threshold
-s = 0.01
-c = 0.10
-min = 2
-freq_rules1 <- apriori(trans_class, 
-               parameter = list(support = s, confidence = c, minlen = min, 
-               target="rules"))
-
-apriori_output(freq_rules1) %>% arrange(-confidence) #order by confidence (largest to smallest)
-```
-
-```{r}
-apriori_output(freq_rules1) %>% arrange(-confidence) #order by confidence (largest to smallest)
-```
-
-```{r}
-apriori_output(freq_rules1) %>% arrange(-lift) #order by lift (largest to smallest)
-```
-
-```{r}
-#adding lift as an interest measure
-apriori_output(freq_items1) %>% 
-  mutate(lift = interestMeasure(freq_items1, measure="lift", trans_class)) %>% 
-  arrange(lift) #order by lift (smallest to largest)
-
-```
-
-```{r}
-itemset = c("whole milk", "yogurt")
-s = 0.01
-milk_and_yogurt = apriori(trans_class, 
-        parameter = list(support = s, target="frequent"), 
-        appearance = list(items = itemset))
-
-apriori_output(milk_and_yogurt)
-```
-
-
-Scoot this code chunk to above the rest of the code chunks
-```{r}
-#adding other interest measures
-apriori_output(freq_rules1) %>% 
-  mutate(AV = interestMeasure(freq_rules1, measure="addedValue", trans_class), 
-         PS = interestMeasure(freq_rules1, measure="leverage", trans_class), 
-         cosine = interestMeasure(freq_rules1, measure="cosine", trans_class), 
-         jaccard = interestMeasure(freq_rules1, measure="jaccard", trans_class),
-         rule_power = interestMeasure(freq_rules1, measure="rulePowerFactor", trans_class)) %>% 
-  arrange(-AV)
-```
 
 ```{r}
 #interactive plot - some nodes are items, others are rules
