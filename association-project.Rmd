@@ -25,7 +25,24 @@ library(arulesViz)
 
 ## Introduction (Sean)
 
-Association rule analysis has become an increasingly popular analytical method, because of how useful it can be for commercial databases. Association anlysis can be used any times you have items sets and a variety of items that may or may not be included in a given set. The goal for this analysis is to uncover relationships between these items. The most practical application for this type of analysis is for retailers who would like to find metrics related to the items that are frequently bought together. The value proposition for this type of analysis is massive, as it can help optimize things like reccomendation algorithms, special deals, inventory management and other aspects which are vital to retailers.
+Association rule analysis has become an increasingly popular analytical method, because of how useful it can be for commercial databases. Association anlysis can be used any times you have items sets and a variety of items that may or may not be included in a given set. The goal for this analysis is to uncover relationships between these items. The most practical application for this type of analysis is for retailers who would like to find metrics related to the items that are frequently bought together. The value proposition for this type of analysis is massive, as it can help optimize things like reccomendation algorithms, special deals, inventory management and other aspects which are vital to retailers.  
+
+In the context of this "market basket" analysis, the goal is gernally to seek joint values of items $I = {i_1, i_2 \dots i_d}$ which consistently arise in your database's transactions $T = {t_1, t_2, \dots, t_N}$. While it might be more simple and asthetically pleasing to think of each transaction as a set like: 
+
+$t_1 = {i_1, i_3, i_4}, t_2 = {i_1,i_2,i_5}$
+
+it may be more pratical to have your data represented in a binary representation:
+
+|    | $i_1$ | $i_2$ | $i_3$ | $i_4$ | $i_5$ |
+|----|----|----|----|----|----|
+| $t_1$ | 1  | 0  | 1  | 1  | 0  |
+| $t_2$ | 1  | 1  | 0  | 0  | 1  |
+
+where each cell has a 1 if the transaction has a given item and a 0 ortherwise. 
+
+Put simply, the goal of this analysis is to find conditions where the probability density of finding a given item in a set $Pr(x_i)$ is larger than it is outside of said conditions. 
+
+In this tutorial we will go over the specifics of how this is accomplished. We will start by introducing a dataset for which these methods can be implemented. Next, we will go more into detail regarding possible applications of this type of analysis. This includes the implementation and uses of the apriori algorithm, a vital algorthim for association rule analysis. Finally we will examine some of the most important interest measures for association rules, including support, confidence, leverage, and lift. 
 
 ## Applications (Andre)
 
