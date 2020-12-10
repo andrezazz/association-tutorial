@@ -9,7 +9,7 @@ output:
     toc_depth: 5
   pdf_document: default
 editor_options:
-  chunk_output_type: console
+  #chunk_output_type: console
 always_allow_html: yes
 ---
 ```{r setup, include=FALSE}
@@ -27,7 +27,55 @@ library(arulesViz)
 
 ## Applications (Andre)
 
-## Apriori Algorithm (Hannah)
+### Data
+The data we use for this tutorial can be found on Kaggle [here](https://www.kaggle.com/heeraldedhia/groceries-dataset). There are 38765 rows of purchase orders from grocery stores, but we need to perform some cleaning before we can really make effective use of these data. We use the unite() function to combine the Member_number and Date columns into a new column, called transactions, which we will use to identify the transactions, and then rename the other column to just be called items. This allows us to use the language of association analysis (transactions and items) more clearly as we proceed. Lastly, we only keep unique rows of the data, so that no transactions will have duplicate items. In effect, this allows us to only concern ourselves with the presence or absense of an item in a transaction, rather than how many times an item appears. We do this because working with vectors over a field of two elements is much easier than vectors over the integers.
+```{r, message=FALSE}
+#https://www.kaggle.com/heeraldedhia/groceries-dataset
+#reading in the data
+groceries <- read_csv("groceries_dataset.csv")
+
+#cleaning the data
+groceries <- groceries %>% unite(transactions, Member_number, Date, sep = '_')
+groceries <- groceries %>% rename(items = itemDescription)
+#transactions: customer identification + _ + date of transaction
+#items: item in transaction
+#checking the data so no transactions have duplicate items
+groceries <- groceries %>% distinct(transactions, items, .keep_all = TRUE)
+```
+
+Next, we will need the number of transactions and the number of items for future reference, as well as for some simple visualization, so we calculate them here.
+```{r}
+num_trans = n_distinct(groceries$transactions) #number of transactions: 14,963
+num_items = n_distinct(groceries$items) # number of items: 167
+```
+
+To try to visualize how our dataset looks, we plot a simple bar graph. We see that most of our transactions have 9 items in them.
+```{r}
+count(groceries, transactions) %>% 
+  ggplot(aes(n)) + geom_bar() + xlab("number of items per transaction") + ggtitle('Distribution of items per transaction') + theme(plot.title = element_text(hjust = 0.5))
+```
+
+For a more complete understanding of the dataset, we examine the summary statistics. This tells us that we have 14,963 transactions with 167 items among them, our more frequent items, the distribution of lengths of transactions, and more.
+```{r}
+trans_list = split(groceries$items, groceries$transactions) # get transaction list
+trans_class = as(trans_list, "transactions") #get transaction class
+summary(trans_class)
+```
+Before we continue much further, it can be useful to understand what our most frequent items are. 
+```{r}
+#finding counts and support for most frequent items
+freq_items = count(groceries, items, sort=TRUE) %>% mutate(support=n/num_trans)
+```
+Now we visually examine the 20 most frequent items. This allows us to build an intuition of what items are going to be the most significant actors in our exploration of these data.  
+```{r}
+#plotting top 20 most frequent items
+freq_items %>% slice(1:20) %>% 
+  ggplot(aes(fct_reorder(items, n), n)) + # order bars by n
+  geom_col() +         # barplot
+  coord_flip() +       # rotate plot 90 deg
+  theme(axis.title.y = element_blank()) # remove y axis title
+```
+## Apriori Algorithm
 
 ### Description
 
@@ -140,34 +188,7 @@ The author of the arules package, Michael Hashler, separates support and confide
 
 ## References
 
-```{r, message=FALSE}
-#https://www.kaggle.com/heeraldedhia/groceries-dataset
-#reading in the data
-groceries <- read_csv("groceries_dataset.csv")
-#cleaning the data
-groceries <- groceries %>% unite(transactions, Member_number, Date, sep = '_')
-groceries <- groceries %>% rename(items = itemDescription)
-#transactions: customer identification + _ + date of transaction
-#items: item in transaction
-#checking the data so no transactions have duplicate items
-groceries <- groceries %>% distinct(transactions, items, .keep_all = TRUE)
-```
 
-```{r}
-num_trans = n_distinct(groceries$transactions) #number of transactions: 14,963
-num_items = n_distinct(groceries$items) # number of items: 167
-```
-
-```{r}
-count(groceries, transactions) %>% 
-  ggplot(aes(n)) + geom_bar() + xlab("number of items per transaction")
-```
-
-```{r}
-trans_list = split(groceries$items, groceries$transactions) # get transaction list
-trans_class = as(trans_list, "transactions") #get transaction class
-summary(trans_class)
-```
 
 ```{r}
 #function for printing output from apriori() function
@@ -186,20 +207,6 @@ apriori_output <- function(x){
   else stop("only works with class of itemsets or rules")
   if(require(tibble)) as_tibble(out) else out
 }
-```
-
-```{r}
-#finding counts and support for most frequent items
-freq_items = count(groceries, items, sort=TRUE) %>% mutate(support=n/num_trans)
-```
-
-```{r}
-#plotting top 20 most frequent items
-freq_items %>% slice(1:20) %>% 
-  ggplot(aes(fct_reorder(items, n), n)) + # order bars by n
-  geom_col() +         # barplot
-  coord_flip() +       # rotate plot 90 deg
-  theme(axis.title.y = element_blank()) # remove y axis title
 ```
 
 ```{r}
@@ -258,5 +265,5 @@ apriori_output(freq_rules1) %>%
 
 ```{r}
 #interactive plot - some nodes are items, others are rules
-#plot(freq_rules1, method="graph", measure="lift")
+plot(freq_rules1, method="graph", measure="lift")
 ```
