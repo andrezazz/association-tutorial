@@ -23,11 +23,11 @@ library(arules)
 library(arulesViz)
 ```
 
-## Introduction (Sean)
+## Introduction
 
 Association rule analysis has become an increasingly popular analytical method, because of how useful it can be for commercial databases. Association anlysis can be used any times you have items sets and a variety of items that may or may not be included in a given set. The goal for this analysis is to uncover relationships between these items. The most practical application for this type of analysis is for retailers who would like to find metrics related to the items that are frequently bought together. The value proposition for this type of analysis is massive, as it can help optimize things like reccomendation algorithms, special deals, inventory management and other aspects which are vital to retailers.
 
-## Applications (Andre)
+## Applications
 
 One of the most common applications of association analysis comes in business, where companies are trying to determine how groups of items are sold together. This is often referred to as "market analysis" or "market basket analysis". Besides market basket data, association analysis is also applicable to other application domains such as bioinformatics, medical diagnosis, Web mining, and scientific data analysis. In truth, association analysis can be useful whenever one is interested in uncovering interesting or significant relationships within large datasets. For the purposes of this tutorial, we will be walking through a market basket analysis on a sample dataset of grocery purchases.
 
@@ -187,22 +187,19 @@ apriori_output(milk_and_yogurt)
 While this can be helpful most of the time, not all rules with high support and confidence are useful. If the support of {whole milk} is very high and the support of {yogurt} is very high, then the confidence of {yogurt} $\rightarrow$ {whole milk} will be high regardless of if there are real association between these itemsets. 
 
 
-## Other Interest Measures (Annie)
+## Other Interest Measures
 
 The concept of interestingness is subjective, and depends on the goals of a business or a research question. The interestingness of a rule oftentimes determines its value, depending on the given context. There are multiple different ways to measure the interestingness of a rule, many of which are included in the arules package. 
 
 The author of the arules package, Michael Hashler, separates support and confidence from the rest of the interest measures based on their importance. We chose only five alternative interest measures for the sake of this tutorial, but more can be found on [Hahsler’s page](https://michael.hahsler.net/research/association_rules/measures.html). 
 
-Scoot this code chunk to above the rest of the code chunks
 ```{r}
 #adding other interest measures
-apriori_output(freq_rules1) %>% 
-  mutate(lift = interestMeasure(freq_rules1, measure="lift", trans_class),
-         PS = interestMeasure(freq_rules1, measure="leverage", trans_class), 
+output = apriori_output(freq_rules1) %>% 
+  mutate(leverage = interestMeasure(freq_rules1, measure="leverage", trans_class), 
          cosine = interestMeasure(freq_rules1, measure="cosine", trans_class), 
          jaccard = interestMeasure(freq_rules1, measure="jaccard", trans_class),
-         rule_power = interestMeasure(freq_rules1, measure="rulePowerFactor", trans_class)) %>% 
-  arrange(-AV)
+         rule_power = interestMeasure(freq_rules1, measure="rulePowerFactor", trans_class))
 ```
 
 ### Support and Confidence Review
@@ -241,22 +238,41 @@ apriori_output(freq_rules1) %>%
     * This means these two items are likely to occur together.
   * Lift < 1 indicates negative association between A and B 
     * This means these two items aren’t likely to occur together.
+
+The below cell shows the rules sorted by lift. In this dataset, the lift for every rule is less than one, meaning that for each rule the antecedent inhibits the consequent. 
+```{r}
+output %>% arrange(-lift)
+```
+    
+```{r}
+#some nodes are items, others are rules
+plot(freq_rules1, method="graph", measure="lift")
+```
     
 #### Cosine 
     
 * **Cosine** is a measure of correlation between the items in X and Y defined as [(Tan et al. (2004))](https://michael.hahsler.net/research/bib/association_rules/#arules:Tan:2004)
 
-  * $cosine(A \rightarrow B) = \frac{P(A) \cap P(B)}{\sqrt{P(A)P(B)}} = \sqrt{P(A|B)P(B|A)}$
+  * $cosine(A \rightarrow B) = \frac{P(A \cap B)}{\sqrt{P(A)P(B)}} = \sqrt{P(A|B)P(B|A)}$
   * Value between [0, 1]
   * 0.5 means no correlation 
   * Null-invariant: does not change with the number of null transactions 
+  
+```{r}
+output %>% arrange(-cosine)
+```
   
 #### Jaccard's coefficient
   
 * **Jaccard's coefficient** is a measure for dependence using the Jaccard similarity between the two sets of transactions that contain the items in A and B, respectively (Hahsler). Defined as
 
+
   * $jaccard(A \rightarrow B) = \frac{P(A \cap B)}{P(A) + P(B) - P(A \cap B)}$
   * Null-invariant: does not change with the number of null transactions 
+  
+```{r}
+output %>% arrange(-jaccard)
+```
 
   
 #### Rule Power Factor
@@ -264,6 +280,10 @@ apriori_output(freq_rules1) %>%
 * **Rule Power Factor** weights the confidence of a rule by its support. (Hasler) Defined as
 
   * $rpf(A \Rightarrow B) = supp(A \cup B) * conf(A \cup B)$
+  
+```{r}
+output %>% arrange(-rule_power)
+```
 
 
 
@@ -271,9 +291,3 @@ apriori_output(freq_rules1) %>%
 
 https://www.rdocumentation.org/packages/arules/versions/1.6-6/topics/interestMeasure
 
-
-
-```{r}
-#interactive plot - some nodes are items, others are rules
-plot(freq_rules1, method="graph", measure="lift")
-```
