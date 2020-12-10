@@ -110,10 +110,7 @@ freq_items %>% slice(1:20) %>%
   theme(axis.title.y = element_blank()) # remove y axis title
 ```
 
-## Apriori Algorithm (Hannah)
-=======
 ## Apriori Algorithm
->>>>>>> a31e77354247703374db586828080f1c8b5740c9
 ### Description
 
 In association analysis, one might want to find all itemsets in the dataset with support that meets some support threshold $s$. But if there are $x$ items in the dataset, then there are $2^x - 1$ possible non-empty itemsets, which could cause computing time and space issues with too large of a search space. The Apriori algorithm seeks to decrease the time to find all such itemsets by restricting the search space of the dataset. To do this, it uses the rule that if an itemset is frequent, then all of its subsets must also be frequent; which also means that if an itemset is not frequent, then none of its supersets will be frequent. This makes sense since one rule of probability is that $P(A, B) \leq P(A)$; which in terms of our goal means that $S(\{a, b\}) \leq S(\{a\})$, so if $S(\{a\}) < s$, then $S(\{a, b\}) \leq s$. The Apriori algorithm uses this rule to search over the dataset and find all itemsets with at least a support of $s$ as follows.
@@ -206,7 +203,7 @@ apriori_output(milk_and_yogurt)
 While this can be helpful most of the time, not all rules with high support and confidence are useful. If the support of {whole milk} is very high and the support of {yogurt} is very high, then the confidence of {yogurt} $\rightarrow$ {whole milk} will be high regardless of if there are real association between these itemsets. 
 
 
-## Other Interest Measures (Annie)
+## Other Interest Measures
 
 The concept of interestingness is subjective in nature, and depends on the goals of a business or a research question. The interestingness of a rule oftentimes determines its value, depending on the given context. There are multiple different ways to measure the interestingness of a rule, many of which are included in the arules package. 
 
@@ -274,7 +271,6 @@ The author of the arules package, Michael Hashler, separates support and confide
 
 ## References
 
-
 ```{r}
 #function for printing output from apriori() function
 #source: Michael Porter
@@ -320,6 +316,7 @@ min = 2
 freq_rules1 <- apriori(trans_class, 
                parameter = list(support = s, confidence = c, minlen = min, 
                target="rules"))
+
 apriori_output(freq_rules1) %>% arrange(-confidence) #order by confidence (largest to smallest)
 ```
 
@@ -337,6 +334,7 @@ s = 0.01
 milk_and_yogurt = apriori(trans_class, 
         parameter = list(support = s, target="frequent"), 
         appearance = list(items = itemset))
+
 apriori_output(milk_and_yogurt)
 ```
 
@@ -349,6 +347,6 @@ apriori_output(freq_rules1) %>%
 ```
 
 ```{r}
-#interactive plot - some nodes are items, others are rules
+#plot - some nodes are items, others are rules
 plot(freq_rules1, method="graph", measure="lift")
 ```
