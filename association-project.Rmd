@@ -335,6 +335,5 @@ apriori_output(freq_rules1) %>%
 ```
 
 ```{r}
-#interactive plot - some nodes are items, others are rules
 plot(freq_rules1, method="graph", measure="lift")
 ```
